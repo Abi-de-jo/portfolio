@@ -116,101 +116,179 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
+ 
+ useEffect(() => {
   if (typeof window === 'undefined') return
   const isTouch = window.matchMedia('(pointer: coarse)').matches
-  if (isTouch) return // ← exit early on mobile/touch devices
+  if (!isTouch) return
 
-  const moveCursor = (e: MouseEvent) => {
-    if (cursorRef.current) {
-      cursorRef.current.style.transform = `translate(${e.clientX - 16}px, ${e.clientY - 16}px)`
-    }
-    if (cursorDotRef.current) {
-      cursorDotRef.current.style.transform = `translate(${e.clientX - 3}px, ${e.clientY - 3}px)`
-    }
-  }
-  window.addEventListener('mousemove', moveCursor)
-  return () => window.removeEventListener('mousemove', moveCursor)
-}, [])
+  // Track last touch position to compute stroke angle
+  let lastX = 0
+  let lastY = 0
+  let lastTime = 0
+ 
+  const spawnBrushStroke = (x: number, y: number, angle: number, speed: number) => {
+    const stroke = document.createElement('div')
 
-useEffect(() => {
-  if (typeof window === 'undefined') return
-  const isTouch = window.matchMedia('(pointer: coarse)').matches
-  if (!isTouch) return // ← only run on touch devices
+    // Width scales with speed — faster swipe = broader stroke
+    const strokeW = Math.min(180, 60 + speed * 0.4)
+    const strokeH = Math.min(48, 16 + speed * 0.08)
 
-  const spawnComet = (x: number, y: number) => {
-    const comet = document.createElement('div')
-    comet.style.cssText = `
+    // Oil paint: layered semi-transparent blobs in purple/indigo/white tones
+    const colors = [
+      `rgba(160, 100, 255, ${0.12 + Math.random() * 0.1})`,
+      `rgba(100, 60, 200, ${0.1 + Math.random() * 0.08})`,
+      `rgba(220, 180, 255, ${0.08 + Math.random() * 0.07})`,
+      `rgba(255, 255, 255, ${0.06 + Math.random() * 0.05})`,
+    ]
+
+    // Pick a layered radial gradient to simulate paint pigment depth
+    const gradient = `radial-gradient(
+      ${Math.round(strokeW * 0.55)}px ${Math.round(strokeH * 0.55)}px at
+      ${40 + Math.random() * 20}% ${40 + Math.random() * 20}%,
+      ${colors[2]} 0%,
+      ${colors[0]} 28%,
+      ${colors[1]} 55%,
+      ${colors[3]} 72%,
+      transparent 100%
+    )`
+
+    stroke.style.cssText = `
       position: fixed;
       left: ${x}px;
       top: ${y}px;
-      width: 6px;
-      height: 6px;
+      width: ${strokeW}px;
+      height: ${strokeH}px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(180,120,255,0.6) 50%, transparent 100%);
-      box-shadow: 0 0 8px 2px rgba(180,120,255,0.5), 0 0 20px 4px rgba(255,255,255,0.15);
+      background: ${gradient};
+      transform: translate(-50%, -50%) rotate(${angle}deg);
+      transform-origin: center center;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 1;
+      filter: blur(${3 + Math.random() * 4}px);
+      mix-blend-mode: screen;
+      will-change: opacity, transform;
+      transition: opacity 0.9s ease, filter 1.2s ease;
+    `
+    document.body.appendChild(stroke)
+
+    // Second inner stroke — lighter pigment lifted from center like real oil
+    const inner = document.createElement('div')
+    inner.style.cssText = `
+      position: fixed;
+      left: ${x + (Math.random() - 0.5) * 12}px;
+      top: ${y + (Math.random() - 0.5) * 8}px;
+      width: ${strokeW * 0.45}px;
+      height: ${strokeH * 0.5}px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at 40% 40%,
+        rgba(255,255,255,0.18) 0%,
+        rgba(200,160,255,0.1) 40%,
+        transparent 100%
+      );
+      transform: translate(-50%, -50%) rotate(${angle + (Math.random() - 0.5) * 20}deg);
       pointer-events: none;
       z-index: 9999;
-      transform: translate(-50%, -50%);
-      transition: opacity 0.5s ease, transform 0.5s ease;
+      filter: blur(${2 + Math.random() * 3}px);
+      mix-blend-mode: screen;
+      opacity: 1;
+      transition: opacity 0.7s ease;
+      will-change: opacity;
     `
-    document.body.appendChild(comet)
+    document.body.appendChild(inner)
 
-    // tail particles
-    for (let i = 1; i <= 4; i++) {
-      const tail = document.createElement('div')
-      const size = 6 - i * 1.2
-      tail.style.cssText = `
+    // Smear trail — stretched ellipses behind the main stroke
+    const trailCount = Math.min(5, Math.floor(speed / 40) + 2)
+    for (let i = 1; i <= trailCount; i++) {
+      const trail = document.createElement('div')
+      const trailOpacity = 0.08 - i * 0.012
+      const trailW = strokeW * (1 - i * 0.12)
+      const trailH = strokeH * (0.7 - i * 0.08)
+      const offsetX = Math.cos((angle * Math.PI) / 180) * i * 18
+      const offsetY = Math.sin((angle * Math.PI) / 180) * i * 18
+
+      trail.style.cssText = `
         position: fixed;
-        left: ${x}px;
-        top: ${y + i * 6}px;
-        width: ${size}px;
-        height: ${size}px;
+        left: ${x - offsetX}px;
+        top: ${y - offsetY}px;
+        width: ${trailW}px;
+        height: ${trailH}px;
         border-radius: 50%;
-        background: rgba(180,120,255,${0.4 - i * 0.08});
+        background: radial-gradient(ellipse at center,
+          rgba(160,100,255,${trailOpacity}) 0%,
+          rgba(100,60,200,${trailOpacity * 0.6}) 50%,
+          transparent 100%
+        );
+        transform: translate(-50%, -50%) rotate(${angle}deg);
         pointer-events: none;
-        z-index: 9998;
-        transform: translate(-50%, -50%);
-        transition: opacity ${0.3 + i * 0.1}s ease;
+        z-index: 9997;
+        filter: blur(${4 + i * 1.5}px);
+        mix-blend-mode: screen;
+        opacity: 1;
+        transition: opacity ${0.6 + i * 0.15}s ease;
+        will-change: opacity;
       `
-      document.body.appendChild(tail)
-      requestAnimationFrame(() => {
-        tail.style.opacity = '0'
-      })
-      setTimeout(() => tail.remove(), 500)
+      document.body.appendChild(trail)
+
+      requestAnimationFrame(() => { trail.style.opacity = '0' })
+      setTimeout(() => trail.remove(), 1200)
     }
 
+    // Fade out main strokes
     requestAnimationFrame(() => {
-      comet.style.opacity = '0'
-      comet.style.transform = 'translate(-50%, -50%) scale(1.8)'
+      stroke.style.opacity = '0'
+      stroke.style.filter = `blur(${8 + Math.random() * 6}px)`
+      inner.style.opacity = '0'
     })
-    setTimeout(() => comet.remove(), 600)
+    setTimeout(() => { stroke.remove(); inner.remove() }, 1400)
   }
 
-  // Touch move → comet follows finger
   const handleTouchMove = (e: TouchEvent) => {
     const touch = e.touches[0]
-    spawnComet(touch.clientX, touch.clientY)
+    const x = touch.clientX
+    const y = touch.clientY
+    const now = Date.now()
+    const dt = now - lastTime || 16
+
+    const dx = x - lastX
+    const dy = y - lastY
+    const speed = Math.sqrt(dx * dx + dy * dy) / dt * 16 // pixels per frame equiv
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI)
+
+    // Only spawn if moved enough — avoids blobs on tap
+    if (Math.sqrt(dx * dx + dy * dy) > 4) {
+      spawnBrushStroke(x, y, angle, speed)
+    }
+
+    lastX = x
+    lastY = y
+    lastTime = now
   }
 
-  // Scroll → comet appears at center-x, tracks scroll direction
+  // Scroll version — broad horizontal sweep near center
   let lastScrollY = window.scrollY
   const handleScroll = () => {
-    const currentScrollY = window.scrollY
-    const direction = currentScrollY > lastScrollY ? 1 : -1
-    lastScrollY = currentScrollY
-    // spawn at a random x near center, y based on scroll position relative to viewport
-    const x = window.innerWidth / 2 + (Math.random() - 0.5) * 80
-    const y = direction > 0 ? window.innerHeight * 0.6 : window.innerHeight * 0.4
-    spawnComet(x, y)
+    const currentY = window.scrollY
+    const dy = currentY - lastScrollY
+    if (Math.abs(dy) < 2) return
+    lastScrollY = currentY
+
+    const x = window.innerWidth / 2 + (Math.random() - 0.5) * window.innerWidth * 0.5
+    const y = dy > 0 ? window.innerHeight * 0.55 : window.innerHeight * 0.45
+    const speed = Math.abs(dy) * 2
+    const angle = dy > 0 ? 10 + Math.random() * 20 : -(10 + Math.random() * 20)
+
+    spawnBrushStroke(x, y, angle, speed)
   }
 
   window.addEventListener('touchmove', handleTouchMove, { passive: true })
   window.addEventListener('scroll', handleScroll, { passive: true })
+
   return () => {
     window.removeEventListener('touchmove', handleTouchMove)
     window.removeEventListener('scroll', handleScroll)
-  }
+   }
 }, [])
 
   useEffect(() => {
