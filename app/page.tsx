@@ -117,6 +117,103 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
+  if (typeof window === 'undefined') return
+  const isTouch = window.matchMedia('(pointer: coarse)').matches
+  if (isTouch) return // ← exit early on mobile/touch devices
+
+  const moveCursor = (e: MouseEvent) => {
+    if (cursorRef.current) {
+      cursorRef.current.style.transform = `translate(${e.clientX - 16}px, ${e.clientY - 16}px)`
+    }
+    if (cursorDotRef.current) {
+      cursorDotRef.current.style.transform = `translate(${e.clientX - 3}px, ${e.clientY - 3}px)`
+    }
+  }
+  window.addEventListener('mousemove', moveCursor)
+  return () => window.removeEventListener('mousemove', moveCursor)
+}, [])
+
+useEffect(() => {
+  if (typeof window === 'undefined') return
+  const isTouch = window.matchMedia('(pointer: coarse)').matches
+  if (!isTouch) return // ← only run on touch devices
+
+  const spawnComet = (x: number, y: number) => {
+    const comet = document.createElement('div')
+    comet.style.cssText = `
+      position: fixed;
+      left: ${x}px;
+      top: ${y}px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(180,120,255,0.6) 50%, transparent 100%);
+      box-shadow: 0 0 8px 2px rgba(180,120,255,0.5), 0 0 20px 4px rgba(255,255,255,0.15);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    `
+    document.body.appendChild(comet)
+
+    // tail particles
+    for (let i = 1; i <= 4; i++) {
+      const tail = document.createElement('div')
+      const size = 6 - i * 1.2
+      tail.style.cssText = `
+        position: fixed;
+        left: ${x}px;
+        top: ${y + i * 6}px;
+        width: ${size}px;
+        height: ${size}px;
+        border-radius: 50%;
+        background: rgba(180,120,255,${0.4 - i * 0.08});
+        pointer-events: none;
+        z-index: 9998;
+        transform: translate(-50%, -50%);
+        transition: opacity ${0.3 + i * 0.1}s ease;
+      `
+      document.body.appendChild(tail)
+      requestAnimationFrame(() => {
+        tail.style.opacity = '0'
+      })
+      setTimeout(() => tail.remove(), 500)
+    }
+
+    requestAnimationFrame(() => {
+      comet.style.opacity = '0'
+      comet.style.transform = 'translate(-50%, -50%) scale(1.8)'
+    })
+    setTimeout(() => comet.remove(), 600)
+  }
+
+  // Touch move → comet follows finger
+  const handleTouchMove = (e: TouchEvent) => {
+    const touch = e.touches[0]
+    spawnComet(touch.clientX, touch.clientY)
+  }
+
+  // Scroll → comet appears at center-x, tracks scroll direction
+  let lastScrollY = window.scrollY
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY
+    const direction = currentScrollY > lastScrollY ? 1 : -1
+    lastScrollY = currentScrollY
+    // spawn at a random x near center, y based on scroll position relative to viewport
+    const x = window.innerWidth / 2 + (Math.random() - 0.5) * 80
+    const y = direction > 0 ? window.innerHeight * 0.6 : window.innerHeight * 0.4
+    spawnComet(x, y)
+  }
+
+  window.addEventListener('touchmove', handleTouchMove, { passive: true })
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  return () => {
+    window.removeEventListener('touchmove', handleTouchMove)
+    window.removeEventListener('scroll', handleScroll)
+  }
+}, [])
+
+  useEffect(() => {
     const updateTime = () => {
       const now = new Date()
       setTime(now.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }))
@@ -148,9 +245,42 @@ export default function Home() {
     <>
 
 
-      {/* Custom cursor */}
-      <div ref={cursorRef} className="cursor-ring" />
-      <div ref={cursorDotRef} className="cursor-dot" />
+{screen === 'desktop' && (
+  <>
+    <div
+      ref={cursorRef}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: 32,
+        height: 32,
+        borderRadius: '50%',
+        border: '1px solid rgba(255,255,255,0.4)',
+        pointerEvents: 'none',
+        zIndex: 9999,
+        transition: 'transform 0.08s ease',
+        willChange: 'transform',
+      }}
+    />
+    <div
+      ref={cursorDotRef}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: 6,
+        height: 6,
+        borderRadius: '50%',
+        background: 'white',
+        pointerEvents: 'none',
+        zIndex: 9999,
+        transition: 'transform 0.04s ease',
+        willChange: 'transform',
+      }}
+    />
+  </>
+)}
 
       {/* Grain overlay */}
       <div className="grain" />
