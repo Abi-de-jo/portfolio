@@ -4,29 +4,29 @@ import './globals.css'
 export const metadata: Metadata = {
   metadataBase: new URL('https://codebyabi.dev'),
   icons: {
-  icon: '/og-image.png',
-  shortcut: '/og-image.png',
-  apple: '/og-image.png',
+  icon: '/favicon.ico',
+  shortcut: '/favicon.ico',
+  apple: '/favicon.ico',
 },
 
   title: {
-    default: 'Abisheik R | codebyabi — Software Developer',
-    template: '%s | Abisheik R (codebyabi)',
+    default: 'Abisheik | codebyabi — Software Developer',
+    template: '%s | Abisheik (codebyabi)',
   },
   description:
-    'Abisheik R, known online as codebyabi, is a Software Developer and Full Stack Engineer building scalable digital products. Follow @codebyabi on Instagram and YouTube.',
+    'Abisheik, known online as codebyabi, is a Software Developer and Full Stack Engineer building scalable digital products. Follow @codebyabi on Instagram and YouTube.',
   keywords: [
     'Abisheik',
-    'Abisheik R',
+    'Abisheik',
     'codebyabi',
     'codebyabi instagram',
     'codebyabi youtube',
     'codebyabisheik linkedin',
     'Abisheik developer',
-    'Abisheik R software developer',
+    'Abisheik software developer',
     'Abisheik codebyabi',
     'who is Abisheik',
-    'Abisheik R portfolio',
+    'Abisheik portfolio',
     'Software Developer India',
     'Full Stack Developer',
     'Product Developer',
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
     'React developer',
     'codebyabi dev',
   ],
-  authors: [{ name: 'Abisheik R', url: 'https://codebyabi.dev' }],
-  creator: 'Abisheik R (codebyabi)',
-  publisher: 'Abisheik R',
+  authors: [{ name: 'Abisheik', url: 'https://codebyabi.dev' }],
+  creator: 'Abisheik (codebyabi)',
+  publisher: 'Abisheik',
   category: 'Technology',
 
   alternates: {
@@ -55,30 +55,30 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: 'Abisheik R | codebyabi — Software Developer',
+    title: 'Abisheik | codebyabi — Software Developer',
     description:
-      'Abisheik R (codebyabi) builds scalable digital products and clean architecture systems. Find codebyabi on Instagram, YouTube and LinkedIn.',
+      'Abisheik (codebyabi) builds scalable digital products and clean architecture systems. Find codebyabi on Instagram, YouTube and LinkedIn.',
     url: 'https://codebyabi.dev',
     siteName: 'codebyabi',
     type: 'profile',
     locale: 'en_IN',
     images: [
       {
-        url: '/og-image.png',
+        url: '/favicon.ico',
         width: 1200,
         height: 630,
-        alt: 'Abisheik R — codebyabi Software Developer',
+        alt: 'Abisheik — codebyabi Software Developer',
       },
     ],
   },
 
   twitter: {
     card: 'summary_large_image',
-    title: 'Abisheik R | codebyabi',
+    title: 'Abisheik | codebyabi',
     description:
       'Software Developer. Follow @codebyabi on Instagram and YouTube.',
     creator: '@codebyabi',
-    images: ['/og-image.png'],
+    images: ['/favicon.ico'],
   },
 
   applicationName: 'codebyabi',
@@ -107,15 +107,15 @@ export default function RootLayout({
               {
                 '@context': 'https://schema.org',
                 '@type': 'Person',
-                name: 'Abisheik R',
+                name: 'Abisheik',
                 alternateName: ['codebyabi', 'codebyabisheik'],
                 url: 'https://codebyabi.dev',
                 jobTitle: 'Software Developer',
                 description:
-                  'Abisheik R, popularly known as codebyabi, is a Software Developer specializing in full-stack web development, scalable systems, and clean architecture.',
+                  'Abisheik, popularly known as codebyabi, is a Software Developer specializing in full-stack web development, scalable systems, and clean architecture.',
                 image: {
                   '@type': 'ImageObject',
-                  url: 'https://codebyabi.dev/og-image.png',
+                  url: 'https://codebyabi.dev/favicon.ico',
                   width: 1200,
                   height: 630,
                 },
@@ -163,11 +163,11 @@ export default function RootLayout({
                 '@context': 'https://schema.org',
                 '@type': 'WebSite',
                 name: 'codebyabi',
-                alternateName: 'Abisheik R',
+                alternateName: 'Abisheik',
                 url: 'https://codebyabi.dev',
                 author: {
                   '@type': 'Person',
-                  name: 'Abisheik R',
+                  name: 'Abisheik',
                   alternateName: 'codebyabi',
                 },
               },
@@ -176,11 +176,11 @@ export default function RootLayout({
               {
                 '@context': 'https://schema.org',
                 '@type': 'ProfilePage',
-                name: 'Abisheik R (codebyabi) — Software Developer',
+                name: 'Abisheik (codebyabi) — Software Developer',
                 url: 'https://codebyabi.dev',
                 mainEntity: {
                   '@type': 'Person',
-                  name: 'Abisheik R',
+                  name: 'Abisheik',
                   alternateName: 'codebyabi',
                   sameAs: [
                     'https://www.instagram.com/codebyabi',

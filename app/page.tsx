@@ -460,7 +460,7 @@ export default function Home() {
                       lineHeight: 1,
                     }}
                   >
-                    Abisheik R
+                    Abisheik
                   </h1>
                 </div>
 
